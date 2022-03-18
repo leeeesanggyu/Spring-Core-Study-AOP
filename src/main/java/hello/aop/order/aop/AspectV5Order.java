@@ -26,14 +26,18 @@ public class AspectV5Order {
         @Around("hello.aop.order.aop.Pointcuts.orderAndService()")
         public Object doTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
             try {
+                // @Before
                 log.info("[Transaction Start] {}", joinPoint.getSignature());
                 final Object result = joinPoint.proceed();
+                // @AfterReturning
                 log.info("[Transaction End] {}", joinPoint.getSignature());
                 return result;
             } catch (IllegalStateException e) {
+                // @AfterThrowing
                 log.info("[Transaction Rollback] {}", joinPoint.getSignature());
                 throw e;
             } finally {
+                // @After
                 log.info("[Resource Release] {}", joinPoint.getSignature());
             }
 
