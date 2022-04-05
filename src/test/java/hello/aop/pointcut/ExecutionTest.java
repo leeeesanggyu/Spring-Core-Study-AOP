@@ -1,5 +1,6 @@
 package hello.aop.pointcut;
 
+import hello.aop.member.MemberService;
 import hello.aop.member.MemberServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.Before;
@@ -75,7 +76,7 @@ public class ExecutionTest {
     }
 
     @Test
-    void PackageMatch() throws NoSuchMethodException {
+    void packageMatch() throws NoSuchMethodException {
         pointcut.setExpression("execution(* *el*(..))");
 
         Assertions.assertThat(pointcut.matches(helloMethod, MemberServiceImpl.class)).isTrue();
@@ -86,7 +87,7 @@ public class ExecutionTest {
     }
 
     @Test
-    void PackageMatchFalse() throws NoSuchMethodException {
+    void packageMatchFalse() throws NoSuchMethodException {
         pointcut.setExpression("execution(* hello.aop.*.*(..))");
 
         Assertions.assertThat(pointcut.matches(helloMethod, MemberServiceImpl.class)).isFalse();
@@ -97,8 +98,80 @@ public class ExecutionTest {
     }
 
     @Test
-    void PackageMatchSubPackage() throws NoSuchMethodException {
+    void packageMatchSubPackage() throws NoSuchMethodException {
         pointcut.setExpression("execution(* hello.aop..*.*(..))");
+
+        Assertions.assertThat(pointcut.matches(helloMethod, MemberServiceImpl.class)).isTrue();
+        Assertions.assertThat(pointcut.matches(
+                MemberServiceImpl.class.getMethod("internal", String.class),
+                MemberServiceImpl.class
+        )).isTrue();
+    }
+
+    @Test
+    void typeMatchSuperType() throws NoSuchMethodException {
+        pointcut.setExpression("execution(* hello.aop.member.MemberService.*(..))");
+
+        Assertions.assertThat(pointcut.matches(helloMethod, MemberService.class)).isTrue();
+        Assertions.assertThat(pointcut.matches(
+                MemberServiceImpl.class.getMethod("internal", String.class),
+                MemberService.class
+        )).isFalse();
+    }
+
+    @Test
+    void argsMatch() throws NoSuchMethodException {
+        pointcut.setExpression("execution(* *(String))");
+
+        Assertions.assertThat(pointcut.matches(helloMethod, MemberServiceImpl.class)).isTrue();
+        Assertions.assertThat(pointcut.matches(
+                MemberServiceImpl.class.getMethod("internal", String.class),
+                MemberServiceImpl.class
+        )).isTrue();
+    }
+
+    @Test
+    void noArgsMatch() throws NoSuchMethodException {
+        pointcut.setExpression("execution(* *())");
+
+        Assertions.assertThat(pointcut.matches(helloMethod, MemberServiceImpl.class)).isFalse();
+        Assertions.assertThat(pointcut.matches(
+                MemberServiceImpl.class.getMethod("internal", String.class),
+                MemberServiceImpl.class
+        )).isFalse();
+    }
+
+    @Test
+    void noArgsMatchStar() throws NoSuchMethodException {
+        // exact one parameter, All type allow
+        pointcut.setExpression("execution(* *(*))");
+
+        Assertions.assertThat(pointcut.matches(helloMethod, MemberServiceImpl.class)).isTrue();
+        Assertions.assertThat(pointcut.matches(
+                MemberServiceImpl.class.getMethod("internal", String.class),
+                MemberServiceImpl.class
+        )).isTrue();
+    }
+
+    @Test
+    void allArgsMatch() throws NoSuchMethodException {
+        // All parameter allow
+        pointcut.setExpression("execution(* *(..))");
+
+        Assertions.assertThat(pointcut.matches(helloMethod, MemberServiceImpl.class)).isTrue();
+        Assertions.assertThat(pointcut.matches(
+                MemberServiceImpl.class.getMethod("internal", String.class),
+                MemberServiceImpl.class
+        )).isTrue();
+    }
+
+    @Test
+    void argsMatchComplex() throws NoSuchMethodException {
+        // String type started all parameter, all type allow
+        // (String), (String, xxx), (String, xxx, xxx)
+        pointcut.setExpression("execution(* *(String, ..))");
+//        pointcut.setExpression("execution(* *(String, String))");
+//        pointcut.setExpression("execution(* *(String, *))");
 
         Assertions.assertThat(pointcut.matches(helloMethod, MemberServiceImpl.class)).isTrue();
         Assertions.assertThat(pointcut.matches(
