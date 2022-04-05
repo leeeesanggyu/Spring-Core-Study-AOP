@@ -112,7 +112,7 @@ public class ExecutionTest {
     void typeMatchSuperType() throws NoSuchMethodException {
         pointcut.setExpression("execution(* hello.aop.member.MemberService.*(..))");
 
-        Assertions.assertThat(pointcut.matches(helloMethod, MemberService.class)).isTrue();
+        Assertions.assertThat(pointcut.matches(helloMethod, MemberServiceImpl.class)).isTrue();
         Assertions.assertThat(pointcut.matches(
                 MemberServiceImpl.class.getMethod("internal", String.class),
                 MemberService.class
