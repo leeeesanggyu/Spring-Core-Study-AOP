@@ -1,7 +1,10 @@
 package hello.aop.pointcut;
 
 import hello.aop.member.MemberService;
+import hello.aop.member.annotation.ClassAop;
+import hello.aop.member.annotation.MethodAop;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -40,12 +43,37 @@ public class parameterTest {
         }
         @Around("allMember() &&(args(arg, ..))")
         public Object logArgs2(ProceedingJoinPoint joinPoint, Object arg) throws Throwable {
-            log.info("[logArgs1] {}, arg={}", joinPoint.getSignature(), arg);
+            log.info("[logArgs2] {}, arg={}", joinPoint.getSignature(), arg);
             return joinPoint.proceed();
         }
         @Before("allMember() && args(args, ..)")
         public void logArgs3(Object args) {
             log.info("[logArgs3] arg = {}", args);
+        }
+        // 프록시 객체를 전달 받는다.
+        @Before("allMember() && this(obj)")
+        public void thisArgs(JoinPoint joinPoint, MemberService obj) {
+            log.info("[thisArgs] {}, obj = {}", joinPoint.getSignature(), obj.getClass());
+        }
+        // 실제 대상 객체를 전달 받는다.
+        @Before("allMember() && target(obj)")
+        public void targetArgs(JoinPoint joinPoint, MemberService obj) {
+            log.info("[targetArgs] {}, obj = {}", joinPoint.getSignature(), obj.getClass());
+        }
+        // annotation 을 전달 받는다.
+        @Before("allMember() && @target(annotation)")
+        public void atTarget(JoinPoint joinPoint, ClassAop annotation) {
+            log.info("[@targetArgs] {}, obj = {}", joinPoint.getSignature(), annotation);
+        }
+        // annotation 을 전달 받는다.
+        @Before("allMember() && @within(annotation)")
+        public void atWithin(JoinPoint joinPoint, ClassAop annotation) {
+            log.info("[@within] {}, obj = {}", joinPoint.getSignature(), annotation);
+        }
+        // method 의 annotation 을 전달 받는다.
+        @Before("allMember() && @annotation(annotation)")
+        public void atAnnotation(JoinPoint joinPoint, MethodAop annotation) {
+            log.info("[@annotation] {}, annotationValue = {}", joinPoint.getSignature(), annotation.value());
         }
     }
 }
